@@ -42,17 +42,23 @@ def _test():
     for subpackage in ['', 'altsrc']:
         coverprofile = 'cli.coverprofile'
         if subpackage != '':
-            coverprofile = '{}.coverprofile'.format(subpackage)
+            coverprofile = f'{subpackage}.coverprofile'
 
         coverprofiles.append(coverprofile)
 
-        _run('go test -v'.split() + [
-            '-coverprofile={}'.format(coverprofile),
-            ('{}/{}'.format(PACKAGE_NAME, subpackage)).rstrip('/')
-        ])
+        _run(
+            (
+                'go test -v'.split()
+                + [
+                    f'-coverprofile={coverprofile}',
+                    f'{PACKAGE_NAME}/{subpackage}'.rstrip('/'),
+                ]
+            )
+        )
+
 
     combined_name = _combine_coverprofiles(coverprofiles)
-    _run('go tool cover -func={}'.format(combined_name))
+    _run(f'go tool cover -func={combined_name}')
     os.remove(combined_name)
 
 
@@ -72,7 +78,7 @@ def _toc():
 def _gen():
     go_version = check_output('go version'.split()).split()[2]
     if go_version < 'go1.5':
-        print('runtests: skip on {}'.format(go_version), file=sys.stderr)
+        print(f'runtests: skip on {go_version}', file=sys.stderr)
         return
 
     _run('go generate ./...')
@@ -82,7 +88,7 @@ def _gen():
 def _run(command):
     if hasattr(command, 'split'):
         command = command.split()
-    print('runtests: {}'.format(' '.join(command)), file=sys.stderr)
+    print(f"runtests: {' '.join(command)}", file=sys.stderr)
     check_call(command)
 
 
@@ -104,7 +110,7 @@ def _combine_coverprofiles(coverprofiles):
 
     for coverprofile in coverprofiles:
         with open(coverprofile, 'r') as infile:
-            for line in infile.readlines():
+            for line in infile:
                 if not line.startswith('mode: '):
                     combined.write(line)
 
